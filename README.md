@@ -54,28 +54,36 @@
 ### Cliente (Android):
 
 - `MainActivity.java`: Actividad principal de la aplicación.
-<img src="readmeImages/menu_bingo.png" width="25%" height="25%">
+<p align="center">
+  <img src="readmeImages/menu_bingo.png" width="25%" height="25%">
+</p>
 
 - `Multijugador.java`: Manejo de la lógica para las partidas multijugador.
-<img src="readmeImages/menu_jugar.png" width="25%" height="25%">
+<p align="center">
+  <img src="readmeImages/menu_jugar.png" width="25%" height="25%">
+</p>
 
 - `Partida.java`: Representación y gestión de una partida de Bingo.
-
-<img src="readmeImages/bingo_vacio.png" width="25%" height="25%"> <img src="readmeImages/bingo_a_medias.png" width="25%" height="25%">
-<img src="readmeImages/bingo_linea.png" width="25%" height="25%">
+<p align="center">
+  <img src="readmeImages/bingo_vacio.png" width="25%" height="25%"> <img src="readmeImages/bingo_a_medias.png" width="25%" height="25%">
+  <img src="readmeImages/bingo_linea.png" width="25%" height="25%">
+</p>
 
 
 - `Fin.java`: Visualización del ganador de la partida.
+<p align="center">
 <img src="readmeImages/bingo_completo.png" width="25%" height="25%">
+</p>
 
 ### Servidor:
 
 - `BingoServer.java`: Lógica principal del servidor, gestiona las conexiones y la comunicación entre clientes.
 - `Jugador.java`: Representación de un jugador dentro del servidor.
 - `App.java`: Interfaz realizada con Swing para un mejor manejo del servidor.
-
+<p align="center">
 <img src="readmeImages/servidor_detenido.png" width="25%" height="25%"> <img src="readmeImages/servidor_iniciado.png" width="25%" height="25%">
 <img src="readmeImages/partida_en_curso.png" width="25%" height="25%"> <img src="readmeImages/partida_terminada.png" width="25%" height="25%">
+</p>
 
 ## Contribuciones
 
