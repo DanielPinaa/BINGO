@@ -209,6 +209,18 @@ public class Partida extends AppCompatActivity {
                             });
                             irPantallaFin(nombre);
                         }
+                        else if (message.startsWith("NUMERO")) {
+
+                            String[] aux = message.split(",");
+                            String numero = aux[1];
+
+                            runOnUiThread(() -> {
+                                TextView numeroTextView = findViewById(R.id.numeros_textView);
+                                numeroTextView.setText(String.format("Número: %s", numero));
+                            });
+                        } else if (message.equals("NUMEROS_COMPLETADOS")) {
+                            irPantallaFin("NADIE");
+                        }
 
                     }
                 } catch (IOException e) {

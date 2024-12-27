@@ -117,13 +117,13 @@ public class BingoServer {
 
             } catch (IOException e) {
                 System.err.println("Error con el cliente: " + e.getMessage());
-            } /* finally {
+            } finally {
                 try {
                     socket.close();
                 } catch (IOException e) {
                     System.err.println("Error al cerrar el socket: " + e.getMessage());
                 }
-            } */
+            }
         }
 
         public void sendMessage(String message) {
@@ -163,11 +163,39 @@ public class BingoServer {
         return partidaComenzada;
     }
 
-    public static void comenzarPartida(){
+    public static void comenzarPartida() {
         partidaComenzada = true;
-        // Informar a todos los clientes que la partida ha comenzado
+    
+        List<Integer> numerosBingo = generarNumerosBingo();
+    
         BingoServer.broadcast("PARTIDA COMENZADA");
+    
+       new Thread(() -> {
+            for (int numero : numerosBingo) {
+                try {
+                    BingoServer.broadcast("NUMERO," + numero);
+    
+                    Thread.sleep(5500);
+                } catch (InterruptedException e) {
+                    System.err.println("Hilo interrumpido durante el envío de números: " + e.getMessage());
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+    
+            BingoServer.broadcast("NUMEROS_COMPLETADOS");
+        }).start();
     }
+    
+    private static List<Integer> generarNumerosBingo() {
+        List<Integer> numeros = new ArrayList<>();
+        for (int i = 1; i <= 80; i++) {
+            numeros.add(i);
+        }
+        Collections.shuffle(numeros); 
+        return numeros;
+    }
+    
 
     public static void finalizarPartida(){
         partidaComenzada = false;
