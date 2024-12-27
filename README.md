@@ -58,7 +58,9 @@
 <img src="readmeImages/menu_jugar.png" width="25%" height="25%">
 
 - `Partida.java`: Representación y gestión de una partida de Bingo.
-<img src="readmeImages/bingo_vacio.png" width="25%" height="25%"> <img src="readmeImages/bingo_a_medias.png" width="25%" height="25%"> <img src="readmeImages/bingo_linea.png" width="25%" height="25%">
+<img src="readmeImages/bingo_vacio.png" width="25%" height="25%"> <img src="readmeImages/bingo_a_medias.png" width="25%" height="25%">
+<img src="readmeImages/bingo_linea.png" width="25%" height="25%">
+
 
 - `Fin.java`: Visualización del ganador de la partida.
 <img src="readmeImages/bingo_completo.png" width="25%" height="25%">
