@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void irPlay() {
-        startActivity(new Intent(this, Play.class));
+        startActivity(new Intent(this, Multijugador.class));
         finish();
     }
 

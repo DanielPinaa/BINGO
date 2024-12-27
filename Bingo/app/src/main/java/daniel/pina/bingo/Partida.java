@@ -1,6 +1,7 @@
 package daniel.pina.bingo;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -34,6 +35,8 @@ public class Partida extends AppCompatActivity {
     private BufferedReader in;
 
     private String NOMBRE;
+
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,27 +93,32 @@ public class Partida extends AppCompatActivity {
 
         new Thread(() -> connectToServer(serverIp, serverPort)).start();
 
-        // Escuchar mensajes del servidor
-        new Thread(() -> {
-            try {
-                String message;
-                while (in!=null && (message = in.readLine()) != null) {
-                    if(message.startsWith("LINEA")){
-                        String [] aux  = message.split(",");
-                        String nombre = aux[1];
-                        if(!nombre.equals(NOMBRE))
-                            Toast.makeText(this, nombre+" HA CANTADO LÍNEA!", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            } catch (IOException e) {
-                Log.e("Multijugador", "Error al leer del servidor", e);
-            }
-        }).start();
     }
 
     private void comprobarBingo() {
+        // Verificar si todos los números están marcados
+        boolean bingoCompleto = true;
+        for (boolean marcado : markedNumbers) {
+            if (!marcado) {
+                bingoCompleto = false;
+                break;
+            }
+        }
 
+        if (bingoCompleto) {
+            Toast.makeText(this, "¡Bingo completado!", Toast.LENGTH_SHORT).show();
+
+            // Enviar mensaje al servidor en un hilo secundario
+            new Thread(() -> {
+                if (out != null) {
+                    out.println("BINGO," + NOMBRE);
+                }
+            }).start();
+        } else {
+            Toast.makeText(this, "Aún no has completado el bingo.", Toast.LENGTH_SHORT).show();
+        }
     }
+
 
     private void comprobarLinea() {
         if (lineaCantada) {
@@ -135,12 +143,14 @@ public class Partida extends AppCompatActivity {
             }
 
             if (lineaCompleta) {
+                System.out.println(NOMBRE +" Va a cantar línea");
                 lineaCantada = true; // Marcar que se ha cantado línea
                 Toast.makeText(this, "¡Línea completada!", Toast.LENGTH_SHORT).show();
 
                 // Enviar mensaje al servidor en un hilo secundario
                 new Thread(() -> {
                     if (out != null) {
+                        System.out.println("out no es null");
                         out.println("LINEA,"+NOMBRE);
                     }
                 }).start();
@@ -173,8 +183,38 @@ public class Partida extends AppCompatActivity {
             new Thread(() -> {
                 try {
                     String message;
-                    while ((message = in.readLine()) != null) {
+                    while (in!=null && (message = in.readLine()) != null) {
                         Log.d("Partida", "Mensaje recibido del servidor: " + message);
+
+                        if (message.startsWith("LINEA")) {
+                            playSound("linea");
+
+                            lineaCantada = true;
+                            String[] aux = message.split(",");
+                            String nombre = aux[1];
+                            System.out.println(nombre);
+
+                            // Asegurar que el Toast se muestra en el hilo principal
+                            runOnUiThread(() -> {
+                                if (!nombre.equals(NOMBRE)) {
+                                    Toast.makeText(this, nombre + " HA CANTADO LÍNEA!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                        else if (message.startsWith("BINGO")) {
+
+                            playSound("bingo");
+                            String[] aux = message.split(",");
+                            String nombre = aux[1];
+
+                            // Asegurar que el Toast se muestra en el hilo principal
+                            runOnUiThread(() -> {
+                                if (!nombre.equals(NOMBRE)) {
+                                    Toast.makeText(this, nombre + " HA CANTADO BINGO!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            irPantallaFin(nombre);
+                        }
 
                     }
                 } catch (IOException e) {
@@ -187,6 +227,27 @@ public class Partida extends AppCompatActivity {
         }
     }
 
+    private void playSound(String sound) {
+        if (sound.equals("linea")) {
+            mediaPlayer = MediaPlayer.create(this, R.raw.linea_sound_effect);
+        }
+        else{
+            mediaPlayer = MediaPlayer.create(this, R.raw.victory_sound_effect);
+        }
+
+
+        // Reproducir el sonido
+        mediaPlayer.start();
+    }
+
+    private void irPantallaFin(String nombre) {
+        Intent intent = new Intent(this, Fin.class);
+
+        intent.putExtra("NOMBRE", nombre);
+
+        startActivity(intent);
+        finish();
+    }
 
 
     @Override
@@ -196,6 +257,9 @@ public class Partida extends AppCompatActivity {
             if (socket != null) socket.close();
             if (out != null) out.close();
             if (in != null) in.close();
+            if (mediaPlayer != null) {
+                mediaPlayer.release();  // Liberar el recurso de MediaPlayer
+            }
         } catch (IOException e) {
             Log.e("Partida", "Error al cerrar la conexión", e);
         }
@@ -220,9 +284,6 @@ public class Partida extends AppCompatActivity {
             markedNumbers[index] = true;
             numberView.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light)); // Cambiar color a verde
             numberView.setTextColor(getResources().getColor(android.R.color.white)); // Cambiar color del texto
-            Toast.makeText(this, "Número marcado: " + numberView.getText(), Toast.LENGTH_SHORT).show();
-
-
         }
     }
 }

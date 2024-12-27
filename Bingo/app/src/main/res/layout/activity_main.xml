@@ -12,10 +12,10 @@
         android:id="@+id/title_textview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/asset"
+        android:fontFamily="@font/alfa_slab_one"
         android:text="Bingo!"
         android:textColor="#070303"
-        android:textSize="48sp"
+        android:textSize="96sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -27,7 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="#020207"
-        android:fontFamily="@font/asset"
+        android:fontFamily="@font/alfa_slab_one"
         android:text="Jugar"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
@@ -35,5 +35,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/title_textview"
-        app:layout_constraintVertical_bias="0.129" />
+        app:layout_constraintVertical_bias="0.705" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="221dp"
+        android:layout_height="203dp"
+        app:layout_constraintBottom_toTopOf="@+id/jugar_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_textview"
+        app:srcCompat="@mipmap/ic_launcher_foreground" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -36,7 +36,7 @@ public class Multijugador extends AppCompatActivity {
         volverButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                irPlay();
+                irMenu();
             }
         });
 
@@ -97,7 +97,14 @@ public class Multijugador extends AppCompatActivity {
                                 conectarButton.setEnabled(false);
                             });
                         }
-                        else if(message.equals("PARTIDA COMENZADA")){
+                        else{
+                            String finalMessage = message;
+                            runOnUiThread(() -> {
+                                Toast.makeText(Multijugador.this, finalMessage, Toast.LENGTH_SHORT).show();
+                                conectarButton.setEnabled(false);
+                            });
+                        }
+                        if(message.equals("PARTIDA COMENZADA")){
                             irPartida(socket, out, in);
                         }
                     }
@@ -141,8 +148,8 @@ public class Multijugador extends AppCompatActivity {
         }
     }
 
-    private void irPlay() {
-        startActivity(new Intent(this, Play.class));
+    private void irMenu() {
+        startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 }

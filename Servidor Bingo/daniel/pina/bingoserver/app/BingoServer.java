@@ -1,3 +1,4 @@
+package daniel.pina.bingoserver.app;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -10,7 +11,7 @@ public class BingoServer {
     private static List<Jugador> jugadores = new ArrayList<>();
     private static boolean partidaComenzada = false; // Variable para controlar si la partida ha comenzado
 
-    public static void main(String[] args) {
+    public static void startServer() {
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Servidor de Bingo iniciado en la dirección IP "+obtenerIPWiFi()+" en el puerto " + PORT );
 
@@ -18,16 +19,15 @@ public class BingoServer {
             new Thread(BingoServer::escucharComando).start();
 
             while (true) {
-                // Aceptar conexiones de clientes si la partida no ha comenzado
-                if (!partidaComenzada) {
-                    Socket clientSocket = serverSocket.accept();
-                    System.out.println("Cliente conectado: " + clientSocket.getInetAddress());
+                
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Cliente conectado: " + clientSocket.getInetAddress());
 
-                    // Manejar la conexión en un nuevo hilo
-                    ClientHandler clientHandler = new ClientHandler(clientSocket);
-                    clients.add(clientHandler);
-                    new Thread(clientHandler).start();
-                }
+                // Manejar la conexión en un nuevo hilo
+                ClientHandler clientHandler = new ClientHandler(clientSocket);
+                clients.add(clientHandler);
+                new Thread(clientHandler).start();
+
             }
 
         } catch (IOException e) {
@@ -48,8 +48,6 @@ public class BingoServer {
             String command;
             while ((command = reader.readLine()) != null) {
                 if (command.equalsIgnoreCase("EMPEZAR PARTIDA")) {
-                    // Detener la aceptación de nuevas conexiones
-                    partidaComenzada = true;
 
                     // Informar a todos los clientes que la partida ha comenzado
                     BingoServer.broadcast("PARTIDA COMENZADA");
@@ -84,6 +82,7 @@ public class BingoServer {
                 // Leer mensajes del cliente
                 String message;
                 while ((message = in.readLine()) != null) {
+                    System.out.println(message);
                     if(message.equals("PARTIDA")){
                         System.out.println("Partida conectada");
                         
@@ -94,8 +93,16 @@ public class BingoServer {
                         String [] aux  = message.split(",");
                         String nombre = aux[1];
                         System.out.println(nombre+" HA CANTADO LÍNEA!");
-                        // Enviar mensaje a todos los clientes
-                        BingoServer.broadcast("LINEA"+message);
+
+                        BingoServer.broadcast("LINEA,"+nombre);
+                        
+                    }
+                    else if(message.startsWith("BINGO")){
+                        String [] aux  = message.split(",");
+                        String nombre = aux[1];
+                        System.out.println(nombre+" HA CANTADO BINGO!");
+
+                        BingoServer.broadcast("BINGO,"+nombre);
                         
                     }
                     else{
@@ -110,13 +117,13 @@ public class BingoServer {
 
             } catch (IOException e) {
                 System.err.println("Error con el cliente: " + e.getMessage());
-            } finally {
+            } /* finally {
                 try {
                     socket.close();
                 } catch (IOException e) {
                     System.err.println("Error al cerrar el socket: " + e.getMessage());
                 }
-            }
+            } */
         }
 
         public void sendMessage(String message) {
@@ -124,7 +131,7 @@ public class BingoServer {
         }
     }
 
-    private static String obtenerIPWiFi() {
+    public static String obtenerIPWiFi() {
         try {
             Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
             while (interfaces.hasMoreElements()) {
@@ -150,5 +157,19 @@ public class BingoServer {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static boolean getPartidaComenzada(){
+        return partidaComenzada;
+    }
+
+    public static void comenzarPartida(){
+        partidaComenzada = true;
+        // Informar a todos los clientes que la partida ha comenzado
+        BingoServer.broadcast("PARTIDA COMENZADA");
+    }
+
+    public static void finalizarPartida(){
+        partidaComenzada = false;
     }
 }

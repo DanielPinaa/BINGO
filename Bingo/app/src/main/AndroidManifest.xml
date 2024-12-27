@@ -35,13 +35,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".Play"
-            android:exported="false" />
-
-        <activity
-            android:name=".Solitario"
-            android:exported="false" />
 
         <activity
             android:name=".Multijugador"
@@ -49,6 +42,10 @@
 
         <activity
             android:name=".Partida"
+            android:exported="false" />
+
+        <activity
+            android:name=".Fin"
             android:exported="false" />
 
         <!-- Declarar fuentes preinstaladas si son necesarias -->
