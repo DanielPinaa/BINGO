@@ -1,5 +1,5 @@
 # Bingo App 
-
+<img src="readmeImages/logo.png" width="25%" height="25%">
 ¡Bienvenido/a a la aplicación de Bingo para Android! Este proyecto está diseñado para ofrecer una experiencia divertida y dinámica de jugar al Bingo en línea dentro de una misma red WiFi.
 
 **Nota**: Esta aplicación está en versión ALPHA y puede contener fallos. La aplicación tan solo muestra los cartones de bingo, la partida se debe buscar en un medio externo (p.e. https://youtu.be/uuE_2QUKQds?si=ZNAepm5-1Jvb_ifN).
@@ -52,15 +52,25 @@
 ### Cliente (Android):
 
 - `MainActivity.java`: Actividad principal de la aplicación.
+<img src="readmeImages/menu_bingo.png" width="25%" height="25%">
 - `Multijugador.java`: Manejo de la lógica para las partidas multijugador.
+<img src="readmeImages/menu_jugar.png" width="25%" height="25%">
 - `Partida.java`: Representación y gestión de una partida de Bingo.
+<img src="readmeImages/bingo_vacio.png" width="25%" height="25%">
+<img src="readmeImages/bingo_a_medias.png" width="25%" height="25%">
+<img src="readmeImages/bingo_linea.png" width="25%" height="25%">
 - `Fin.java`: Visualización del ganador de la partida.
+<img src="readmeImages/bingo_completo.png" width="25%" height="25%">
 
 ### Servidor:
 
 - `BingoServer.java`: Lógica principal del servidor, gestiona las conexiones y la comunicación entre clientes.
 - `Jugador.java`: Representación de un jugador dentro del servidor.
 - `App.java`: Interfaz realizada con Swing para un mejor manejo del servidor.
+<img src="readmeImages/servidor_detenido.png" width="25%" height="25%">
+<img src="readmeImages/servidor_iniciado.png" width="25%" height="25%">
+<img src="readmeImages/partida_en_curso.png" width="25%" height="25%">
+<img src="readmeImages/partida_terminada.png" width="25%" height="25%">
 
 ## Contribuciones
 
