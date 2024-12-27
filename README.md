@@ -71,10 +71,9 @@
 - `BingoServer.java`: Lógica principal del servidor, gestiona las conexiones y la comunicación entre clientes.
 - `Jugador.java`: Representación de un jugador dentro del servidor.
 - `App.java`: Interfaz realizada con Swing para un mejor manejo del servidor.
-<img src="readmeImages/servidor_detenido.png" width="25%" height="25%">
-<img src="readmeImages/servidor_iniciado.png" width="25%" height="25%">
-<img src="readmeImages/partida_en_curso.png" width="25%" height="25%">
-<img src="readmeImages/partida_terminada.png" width="25%" height="25%">
+
+<img src="readmeImages/servidor_detenido.png" width="25%" height="25%"> <img src="readmeImages/servidor_iniciado.png" width="25%" height="25%">
+<img src="readmeImages/partida_en_curso.png" width="25%" height="25%"> <img src="readmeImages/partida_terminada.png" width="25%" height="25%">
 
 ## Contribuciones
 
