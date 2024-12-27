@@ -68,6 +68,7 @@ public class BingoServer {
         private final Socket socket;
         private PrintWriter out;
         private BufferedReader in;
+        private boolean lineaCantada = false;
 
         public ClientHandler(Socket socket) {
             this.socket = socket;
@@ -86,7 +87,16 @@ public class BingoServer {
                     if(message.equals("PARTIDA")){
                         System.out.println("Partida conectada");
                         
-                        //ENVIAR EL CARTÓN A CADA JUGADOR
+                        
+                    }
+                    else if(message.startsWith("LINEA") && !lineaCantada){
+                        lineaCantada = true;
+                        String [] aux  = message.split(",");
+                        String nombre = aux[1];
+                        System.out.println(nombre+" HA CANTADO LÍNEA!");
+                        // Enviar mensaje a todos los clientes
+                        BingoServer.broadcast("LINEA"+message);
+                        
                     }
                     else{
                         System.out.println("Jugador conectado: " + message);

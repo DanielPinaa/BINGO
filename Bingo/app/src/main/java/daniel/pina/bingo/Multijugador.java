@@ -86,7 +86,7 @@ public class Multijugador extends AppCompatActivity {
             new Thread(() -> {
                 try {
                     String message;
-                    while ((message = in.readLine()) != null) {
+                    while (in!=null && (message = in.readLine()) != null) {
                         Log.d("Multijugador", "Mensaje recibido del servidor: " + message);
                         // Aquí puedes actualizar la UI o manejar los datos recibidos
                         System.out.println(message);
@@ -121,6 +121,7 @@ public class Multijugador extends AppCompatActivity {
         // Pasar los datos necesarios a la nueva actividad
         intent.putExtra("SERVER_IP", SERVER_IP);
         intent.putExtra("SERVER_PORT", SERVER_PORT);
+        intent.putExtra("NOMBRE", NOMBRE);
 
         // Iniciar la actividad
         startActivity(intent);
