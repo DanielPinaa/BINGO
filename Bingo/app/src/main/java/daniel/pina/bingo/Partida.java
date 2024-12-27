@@ -96,7 +96,6 @@ public class Partida extends AppCompatActivity {
     }
 
     private void comprobarBingo() {
-        // Verificar si todos los números están marcados
         boolean bingoCompleto = true;
         for (boolean marcado : markedNumbers) {
             if (!marcado) {
@@ -108,7 +107,7 @@ public class Partida extends AppCompatActivity {
         if (bingoCompleto) {
             Toast.makeText(this, "¡Bingo completado!", Toast.LENGTH_SHORT).show();
 
-            // Enviar mensaje al servidor en un hilo secundario
+
             new Thread(() -> {
                 if (out != null) {
                     out.println("BINGO," + NOMBRE);
@@ -126,14 +125,10 @@ public class Partida extends AppCompatActivity {
             return;
         }
 
-        // Número de columnas en la cuadrícula
         int columns = 5;
-
-        // Comprobar cada fila
         for (int row = 0; row < columns; row++) {
             boolean lineaCompleta = true;
 
-            // Comprobar cada número en la fila
             for (int col = 0; col < columns; col++) {
                 int index = row * columns + col;
                 if (!markedNumbers[index]) {
@@ -144,10 +139,10 @@ public class Partida extends AppCompatActivity {
 
             if (lineaCompleta) {
                 System.out.println(NOMBRE +" Va a cantar línea");
-                lineaCantada = true; // Marcar que se ha cantado línea
+                lineaCantada = true;
                 Toast.makeText(this, "¡Línea completada!", Toast.LENGTH_SHORT).show();
 
-                // Enviar mensaje al servidor en un hilo secundario
+
                 new Thread(() -> {
                     if (out != null) {
                         System.out.println("out no es null");
@@ -159,7 +154,7 @@ public class Partida extends AppCompatActivity {
             }
         }
 
-        // Si no se encontró ninguna línea completa
+
         Toast.makeText(this, "Aún no has completado ninguna línea.", Toast.LENGTH_SHORT).show();
     }
 
@@ -171,15 +166,14 @@ public class Partida extends AppCompatActivity {
 
     private void connectToServer(String serverIp, int serverPort) {
         try {
-            // Conectar al servidor
+
             socket = new Socket(serverIp, serverPort);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // Enviar un mensaje indicando que la partida ha comenzado
             out.println("PARTIDA");
 
-            // Escuchar mensajes del servidor
+
             new Thread(() -> {
                 try {
                     String message;
@@ -194,7 +188,7 @@ public class Partida extends AppCompatActivity {
                             String nombre = aux[1];
                             System.out.println(nombre);
 
-                            // Asegurar que el Toast se muestra en el hilo principal
+
                             runOnUiThread(() -> {
                                 if (!nombre.equals(NOMBRE)) {
                                     Toast.makeText(this, nombre + " HA CANTADO LÍNEA!", Toast.LENGTH_SHORT).show();
@@ -207,7 +201,7 @@ public class Partida extends AppCompatActivity {
                             String[] aux = message.split(",");
                             String nombre = aux[1];
 
-                            // Asegurar que el Toast se muestra en el hilo principal
+
                             runOnUiThread(() -> {
                                 if (!nombre.equals(NOMBRE)) {
                                     Toast.makeText(this, nombre + " HA CANTADO BINGO!", Toast.LENGTH_SHORT).show();
@@ -236,7 +230,6 @@ public class Partida extends AppCompatActivity {
         }
 
 
-        // Reproducir el sonido
         mediaPlayer.start();
     }
 
@@ -258,32 +251,32 @@ public class Partida extends AppCompatActivity {
             if (out != null) out.close();
             if (in != null) in.close();
             if (mediaPlayer != null) {
-                mediaPlayer.release();  // Liberar el recurso de MediaPlayer
+                mediaPlayer.release();
             }
         } catch (IOException e) {
             Log.e("Partida", "Error al cerrar la conexión", e);
         }
     }
 
-    // Método para generar números de bingo aleatorios (1-75)
+
     private List<Integer> generateBingoNumbers() {
         List<Integer> numbers = new ArrayList<>();
-        for (int i = 1; i <= 75; i++) {
+        for (int i = 1; i <= 80; i++) {
             numbers.add(i);
         }
-        Collections.shuffle(numbers); // Mezclar los números
-        return numbers.subList(0, 25); // Seleccionar los primeros 25 números
+        Collections.shuffle(numbers);
+        return numbers.subList(0, 25);
     }
 
-    // Método para marcar un número cuando el usuario haga clic
+
     private void markNumber(int index, TextView numberView) {
         if (markedNumbers[index]) {
             Toast.makeText(this, "Este número ya ha sido marcado.", Toast.LENGTH_SHORT).show();
         } else {
-            // Marcar el número como seleccionado
+
             markedNumbers[index] = true;
-            numberView.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light)); // Cambiar color a verde
-            numberView.setTextColor(getResources().getColor(android.R.color.white)); // Cambiar color del texto
+            numberView.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+            numberView.setTextColor(getResources().getColor(android.R.color.white));
         }
     }
 }

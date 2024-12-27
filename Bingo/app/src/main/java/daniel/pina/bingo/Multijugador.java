@@ -18,9 +18,9 @@ import java.net.Socket;
 
 public class Multijugador extends AppCompatActivity {
 
-    private static String SERVER_IP; // IP del servidor
-    private static String NOMBRE; // IP del servidor
-    private static final int SERVER_PORT = 12345; // Puerto del servidor
+    private static String SERVER_IP;
+    private static String NOMBRE;
+    private static final int SERVER_PORT = 12345;
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
@@ -52,7 +52,6 @@ public class Multijugador extends AppCompatActivity {
     }
 
     private void conectar() {
-        // Obtener el valor ingresado en el campo de texto
         EditText nameField = findViewById(R.id.nombre_TextText);
         String nombrePartida = nameField.getText().toString();
 
@@ -72,7 +71,7 @@ public class Multijugador extends AppCompatActivity {
 
         SERVER_IP = direccionIP;
 
-        // Iniciar la conexión en un hilo separado
+
         new Thread(this::connectToServer).start();
     }
 
@@ -82,17 +81,16 @@ public class Multijugador extends AppCompatActivity {
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            // Escuchar mensajes del servidor
+
             new Thread(() -> {
                 try {
                     String message;
                     while (in!=null && (message = in.readLine()) != null) {
                         Log.d("Multijugador", "Mensaje recibido del servidor: " + message);
-                        // Aquí puedes actualizar la UI o manejar los datos recibidos
-                        System.out.println(message);
+
                         if(message.equals(NOMBRE + " se ha conectado a la partida.")){
                             runOnUiThread(() -> {
-                                // Mostrar el aviso de conexión exitosa en la UI
+
                                 Toast.makeText(Multijugador.this, "Te has unido a la partida correctamente", Toast.LENGTH_SHORT).show();
                                 conectarButton.setEnabled(false);
                             });
@@ -113,7 +111,7 @@ public class Multijugador extends AppCompatActivity {
                 }
             }).start();
 
-            // Enviar un mensaje al servidor (por ejemplo, para unirte al juego)
+
             out.println(NOMBRE);
 
         } catch (IOException e) {
@@ -122,15 +120,13 @@ public class Multijugador extends AppCompatActivity {
     }
 
     private void irPartida(Socket socket, PrintWriter out, BufferedReader in) {
-        // Crear el intent para la actividad Partida
+
         Intent intent = new Intent(this, Partida.class);
 
-        // Pasar los datos necesarios a la nueva actividad
         intent.putExtra("SERVER_IP", SERVER_IP);
         intent.putExtra("SERVER_PORT", SERVER_PORT);
         intent.putExtra("NOMBRE", NOMBRE);
 
-        // Iniciar la actividad
         startActivity(intent);
         finish();
     }
