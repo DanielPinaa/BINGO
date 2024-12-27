@@ -1,5 +1,7 @@
 # Bingo App 
-<img src="readmeImages/logo.png" width="25%" height="25%">
+<p align="center">
+  <img src="readmeImages/logo.png" width="25%" height="25%">
+</p>
 ¡Bienvenido/a a la aplicación de Bingo para Android! Este proyecto está diseñado para ofrecer una experiencia divertida y dinámica de jugar al Bingo en línea dentro de una misma red WiFi.
 
 **Nota**: Esta aplicación está en versión ALPHA y puede contener fallos. La aplicación tan solo muestra los cartones de bingo, la partida se debe buscar en un medio externo (p.e. https://youtu.be/uuE_2QUKQds?si=ZNAepm5-1Jvb_ifN).
