@@ -21,8 +21,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import android.speech.tts.TextToSpeech;
+import java.util.Locale;
 
-public class Partida extends AppCompatActivity {
+public class Partida extends AppCompatActivity implements TextToSpeech.OnInitListener{
 
     private GridLayout bingoGrid;
     private List<Integer> bingoNumbers;
@@ -30,6 +33,7 @@ public class Partida extends AppCompatActivity {
 
     private boolean lineaCantada = false;
 
+    private TextToSpeech textToSpeech;
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
@@ -42,6 +46,8 @@ public class Partida extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.partida_layout);
+
+        textToSpeech = new TextToSpeech(this, this);
 
         Button volverButton = findViewById(R.id.volver_multijugador_button);
         volverButton.setOnClickListener(new View.OnClickListener() {
@@ -67,23 +73,40 @@ public class Partida extends AppCompatActivity {
             }
         });
 
+
         bingoGrid = findViewById(R.id.bingoGrid);
 
-        bingoNumbers = generateBingoNumbers();
-        markedNumbers = new boolean[bingoNumbers.size()];
+        markedNumbers = new boolean[80];
 
-        for (int i = 0; i < bingoNumbers.size(); i++) {
-            final TextView numberView = new TextView(this);
-            numberView.setText(String.valueOf(bingoNumbers.get(i)));
-            numberView.setTextSize(32f); // Tamaño del texto más grande
-            numberView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-            numberView.setPadding(25, 25, 25, 25);
-            numberView.setGravity(Gravity.CENTER);
+        List<List<Integer>> orderedNumbers = generateBingoNumbers();
 
-            final int index = i;
-            numberView.setOnClickListener(v -> markNumber(index, numberView));
+        for (int col = 0; col < 8; col++) {
+            List<Integer> currentColumn = orderedNumbers.get(col);
+            for (int row = 0; row < 8; row++) {
+                TextView numberView = new TextView(this);
+                numberView.setTextSize(32f);
+                numberView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+                numberView.setPadding(16, 16, 16, 16);
+                numberView.setGravity(Gravity.CENTER);
 
-            bingoGrid.addView(numberView);
+                if (row < currentColumn.size() && currentColumn.get(row) != null) {
+                    int number = currentColumn.get(row);
+                    numberView.setText(String.valueOf(number));
+
+                    final int columnIndex = col;
+                    final int rowIndex = row;
+                    numberView.setOnClickListener(v -> markNumber(columnIndex, rowIndex, numberView));
+                } else {
+                    numberView.setText("");
+                }
+
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                params.rowSpec = GridLayout.spec(row);
+                params.columnSpec = GridLayout.spec(col);
+                numberView.setLayoutParams(params);
+
+                bingoGrid.addView(numberView);
+            }
         }
 
 
@@ -97,8 +120,16 @@ public class Partida extends AppCompatActivity {
 
     private void comprobarBingo() {
         boolean bingoCompleto = true;
-        for (boolean marcado : markedNumbers) {
-            if (!marcado) {
+
+        for (int i = 0; i < bingoGrid.getChildCount(); i++) {
+            TextView cell = (TextView) bingoGrid.getChildAt(i);
+
+            if (cell.getText().toString().isEmpty()) {
+                continue;
+            }
+
+            int number = Integer.parseInt(cell.getText().toString());
+            if (!markedNumbers[number - 1]) {
                 bingoCompleto = false;
                 break;
             }
@@ -106,7 +137,6 @@ public class Partida extends AppCompatActivity {
 
         if (bingoCompleto) {
             Toast.makeText(this, "¡Bingo completado!", Toast.LENGTH_SHORT).show();
-
 
             new Thread(() -> {
                 if (out != null) {
@@ -119,44 +149,50 @@ public class Partida extends AppCompatActivity {
     }
 
 
+
     private void comprobarLinea() {
         if (lineaCantada) {
             Toast.makeText(this, "¡Ya has cantado línea!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        int columns = 5;
-        for (int row = 0; row < columns; row++) {
+        for (int row = 0; row < 8; row++) {
             boolean lineaCompleta = true;
 
-            for (int col = 0; col < columns; col++) {
-                int index = row * columns + col;
-                if (!markedNumbers[index]) {
+            for (int col = 0; col < 8; col++) {
+                int index = (col * 8) + row;
+                TextView cell = (TextView) bingoGrid.getChildAt(index);
+
+                if (cell.getText().toString().isEmpty()) {
+                    continue;
+                }
+
+                int number = Integer.parseInt(cell.getText().toString());
+
+                if (!markedNumbers[number - 1]) {
                     lineaCompleta = false;
                     break;
                 }
             }
 
             if (lineaCompleta) {
-                System.out.println(NOMBRE +" Va a cantar línea");
                 lineaCantada = true;
                 Toast.makeText(this, "¡Línea completada!", Toast.LENGTH_SHORT).show();
 
-
                 new Thread(() -> {
                     if (out != null) {
-                        System.out.println("out no es null");
-                        out.println("LINEA,"+NOMBRE);
+                        out.println("LINEA," + NOMBRE);
                     }
                 }).start();
-
                 return;
             }
         }
 
-
         Toast.makeText(this, "Aún no has completado ninguna línea.", Toast.LENGTH_SHORT).show();
     }
+
+
+
 
 
     private void irMultijugador() {
@@ -181,17 +217,21 @@ public class Partida extends AppCompatActivity {
                         Log.d("Partida", "Mensaje recibido del servidor: " + message);
 
                         if (message.startsWith("LINEA")) {
-                            playSound("linea");
+
 
                             lineaCantada = true;
                             String[] aux = message.split(",");
                             String nombre = aux[1];
-                            System.out.println(nombre);
-
-
+                            if (nombre.equals(NOMBRE)) {
+                                playSound("linea");
+                            }
+                            else{
+                                speakLinea(nombre);
+                            }
                             runOnUiThread(() -> {
                                 if (!nombre.equals(NOMBRE)) {
                                     Toast.makeText(this, nombre + " HA CANTADO LÍNEA!", Toast.LENGTH_SHORT).show();
+
                                 }
                             });
                         }
@@ -217,7 +257,10 @@ public class Partida extends AppCompatActivity {
                             runOnUiThread(() -> {
                                 TextView numeroTextView = findViewById(R.id.numeros_textView);
                                 numeroTextView.setText(String.format("Número: %s", numero));
+
+
                             });
+                            speakNumber(numero);
                         } else if (message.equals("NUMEROS_COMPLETADOS")) {
                             irPantallaFin("NADIE");
                         }
@@ -231,6 +274,20 @@ public class Partida extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("Partida", "Error al conectar con el servidor", e);
         }
+    }
+
+    private void speakNumber(String number) {
+        if (textToSpeech != null) {
+
+            if(number.length()>1)
+                textToSpeech.speak(number + ", "+ number.charAt(0)+ " " + number.charAt(1), TextToSpeech.QUEUE_FLUSH, null, null);
+            else
+                textToSpeech.speak(number, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
+    }
+
+    private void speakLinea(String nombre) {
+        textToSpeech.speak(nombre + " ha cantado línea.", TextToSpeech.QUEUE_FLUSH, null, null);
     }
 
     private void playSound(String sound) {
@@ -271,24 +328,57 @@ public class Partida extends AppCompatActivity {
     }
 
 
-    private List<Integer> generateBingoNumbers() {
-        List<Integer> numbers = new ArrayList<>();
-        for (int i = 1; i <= 80; i++) {
-            numbers.add(i);
+    private List<List<Integer>> generateBingoNumbers() {
+        List<List<Integer>> columns = new ArrayList<>();
+
+        for (int i = 0; i < 8; i++) {
+            List<Integer> column = new ArrayList<>();
+            for (int j = i * 10 + 1; j <= i * 10 + 10; j++) {
+                column.add(j);
+            }
+            Collections.shuffle(column);
+            List<Integer> selected = column.subList(0, 4);
+            while (selected.size() < 8) {
+                selected.add(null);
+            }
+            Collections.shuffle(selected);
+            columns.add(selected);
         }
-        Collections.shuffle(numbers);
-        return numbers.subList(0, 25);
+
+        return columns;
     }
 
 
-    private void markNumber(int index, TextView numberView) {
-        if (markedNumbers[index]) {
+
+
+    private void markNumber(int columnIndex, int rowIndex, TextView numberView) {
+        if (numberView.getText().toString().isEmpty()) {
+            Toast.makeText(this, "Esta celda está vacía.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String numberText = numberView.getText().toString();
+        int number = Integer.parseInt(numberText);
+
+        if (markedNumbers[number - 1]) {
             Toast.makeText(this, "Este número ya ha sido marcado.", Toast.LENGTH_SHORT).show();
         } else {
-
-            markedNumbers[index] = true;
+            markedNumbers[number - 1] = true;
             numberView.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
             numberView.setTextColor(getResources().getColor(android.R.color.white));
+        }
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            int result = textToSpeech.setLanguage(new Locale("es", "ES"));
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("Partida", "Idioma no soportado para TTS.");
+            }
+        } else {
+            Log.e("Partida", "Error al inicializar TTS.");
         }
     }
 }
