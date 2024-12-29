@@ -37,6 +37,21 @@
         app:layout_constraintTop_toBottomOf="@+id/title_textview"
         app:layout_constraintVertical_bias="0.705" />
 
+    <Button
+        android:id="@+id/jugar_solitario_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#020207"
+        android:fontFamily="@font/alfa_slab_one"
+        android:text="Jugar Individual"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_textview"
+        app:layout_constraintVertical_bias="0.898" />
+
     <ImageView
         android:id="@+id/imageView2"
         android:layout_width="221dp"

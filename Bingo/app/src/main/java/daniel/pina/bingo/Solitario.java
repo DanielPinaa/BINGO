@@ -1,33 +1,31 @@
 package daniel.pina.bingo;
 
+import static daniel.pina.bingo.R.*;
+
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Gravity;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridLayout;
 import android.widget.TextView;
+import android.media.MediaPlayer;
+import android.util.Log;
+import android.view.Gravity;
+import android.widget.GridLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import android.speech.tts.TextToSpeech;
 import java.util.Locale;
 
-public class Partida extends AppCompatActivity implements TextToSpeech.OnInitListener{
+public class Solitario extends AppCompatActivity implements TextToSpeech.OnInitListener{
 
     private GridLayout bingoGrid;
     private List<Integer> bingoNumbers;
@@ -38,30 +36,29 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
     private boolean lineaCantada = false;
 
     private TextToSpeech textToSpeech;
-    private Socket socket;
+
     private PrintWriter out;
     private BufferedReader in;
-
-    private String NOMBRE;
 
     private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.partida_layout);
+        setContentView(layout.solitario_layout);
 
         textToSpeech = new TextToSpeech(this, this);
 
-        Button volverButton = findViewById(R.id.volver_multijugador_button);
+
+        Button volverButton = findViewById(R.id.volver_solitario_button);
         volverButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                irMultijugador();
+                irMenu();
             }
         });
 
-        Button lineaButton = findViewById(R.id.linea_button);
+        Button lineaButton = findViewById(R.id.linea_solitario_button);
         lineaButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -69,7 +66,7 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
             }
         });
 
-        Button bingoButton = findViewById(R.id.bingo_button);
+        Button bingoButton = findViewById(R.id.bingo_solitario_button);
         bingoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,13 +110,50 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
             }
         }
 
+        comenzarPartida();
+    }
 
-        String serverIp = getIntent().getStringExtra("SERVER_IP");
-        int serverPort = getIntent().getIntExtra("SERVER_PORT", 12345);
-        NOMBRE = getIntent().getStringExtra("NOMBRE");
+    public void comenzarPartida() {
 
-        new Thread(() -> connectToServer(serverIp, serverPort)).start();
+        List<Integer> numerosBingo = generarNumerosBingo();
 
+        new Thread(() -> {
+            try {
+                TextView numeros = null;
+                Thread.sleep(2000);
+                for (int numero : numerosBingo) {
+                    numeros = findViewById(id.numeros_solitario_textView);
+                    TextView finalNumeros = numeros;
+                    runOnUiThread(() -> {
+                        finalNumeros.setText("Número: " + numero);
+                    });
+                    speakNumber(""+numero);
+                    listedNumbers.put(numero,true);
+                    try {
+                        Thread.sleep(7500);
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+                numeros.setText("Fin de la partida");
+            } catch (InterruptedException e) {
+                System.err.println("Hilo interrumpido durante el envío de números: " + e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+
+
+
+
+        }).start();
+    }
+
+    private List<Integer> generarNumerosBingo() {
+        List<Integer> numeros = new ArrayList<>();
+        for (int i = 1; i <= 80; i++) {
+            numeros.add(i);
+        }
+        Collections.shuffle(numeros);
+        return numeros;
     }
 
     private void comprobarBingo() {
@@ -141,18 +175,10 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
 
         if (bingoCompleto) {
             Toast.makeText(this, "¡Bingo completado!", Toast.LENGTH_SHORT).show();
-
-            new Thread(() -> {
-                if (out != null) {
-                    out.println("BINGO," + NOMBRE);
-                }
-            }).start();
         } else {
             Toast.makeText(this, "Aún no has completado el bingo.", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 
     private void comprobarLinea() {
         if (lineaCantada) {
@@ -177,20 +203,13 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
                     lineaCompleta = false;
                     break;
                 }
-
             }
-
 
 
             if (lineaCompleta) {
                 lineaCantada = true;
                 Toast.makeText(this, "¡Línea completada!", Toast.LENGTH_SHORT).show();
-
-                new Thread(() -> {
-                    if (out != null) {
-                        out.println("LINEA," + NOMBRE);
-                    }
-                }).start();
+                playSound("linea");
                 return;
             }
         }
@@ -199,89 +218,6 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
     }
 
 
-
-
-
-    private void irMultijugador() {
-        startActivity(new Intent(this, Multijugador.class));
-        finish();
-    }
-
-    private void connectToServer(String serverIp, int serverPort) {
-        try {
-
-            socket = new Socket(serverIp, serverPort);
-            out = new PrintWriter(socket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-            out.println("PARTIDA");
-
-
-            new Thread(() -> {
-                try {
-                    String message;
-                    while (in!=null && (message = in.readLine()) != null) {
-                        Log.d("Partida", "Mensaje recibido del servidor: " + message);
-
-                        if (message.startsWith("LINEA")) {
-
-
-                            lineaCantada = true;
-                            String[] aux = message.split(",");
-                            String nombre = aux[1];
-                            if (nombre.equals(NOMBRE)) {
-                                playSound("linea");
-                            }
-                            else{
-                                speakLinea(nombre);
-                            }
-                            runOnUiThread(() -> {
-                                if (!nombre.equals(NOMBRE)) {
-                                    Toast.makeText(this, nombre + " HA CANTADO LÍNEA!", Toast.LENGTH_SHORT).show();
-
-                                }
-                            });
-                        }
-                        else if (message.startsWith("BINGO")) {
-
-                            playSound("bingo");
-                            String[] aux = message.split(",");
-                            String nombre = aux[1];
-
-
-                            runOnUiThread(() -> {
-                                if (!nombre.equals(NOMBRE)) {
-                                    Toast.makeText(this, nombre + " HA CANTADO BINGO!", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                            irPantallaFin(nombre);
-                        }
-                        else if (message.startsWith("NUMERO")) {
-
-                            String[] aux = message.split(",");
-                            String numero = aux[1];
-                            listedNumbers.put(Integer.parseInt(numero),true);
-                            runOnUiThread(() -> {
-                                TextView numeroTextView = findViewById(R.id.numeros_textView);
-                                numeroTextView.setText(String.format("Número: %s", numero));
-
-
-                            });
-                            speakNumber(numero);
-                        } else if (message.equals("NUMEROS_COMPLETADOS")) {
-                            irPantallaFin("NADIE");
-                        }
-
-                    }
-                } catch (IOException e) {
-                    Log.e("Partida", "Error al leer del servidor", e);
-                }
-            }).start();
-
-        } catch (IOException e) {
-            Log.e("Partida", "Error al conectar con el servidor", e);
-        }
-    }
 
     private void speakNumber(String number) {
         if (textToSpeech != null) {
@@ -309,31 +245,13 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
         mediaPlayer.start();
     }
 
-    private void irPantallaFin(String nombre) {
-        Intent intent = new Intent(this, Fin.class);
-
-        intent.putExtra("NOMBRE", nombre);
-
-        startActivity(intent);
-        finish();
-    }
-
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        try {
-            if (socket != null) socket.close();
-            if (out != null) out.close();
-            if (in != null) in.close();
-            if (mediaPlayer != null) {
-                mediaPlayer.release();
-            }
-        } catch (IOException e) {
-            Log.e("Partida", "Error al cerrar la conexión", e);
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
         }
     }
-
 
     private List<List<Integer>> generateBingoNumbers() {
         List<List<Integer>> columns = new ArrayList<>();
@@ -354,9 +272,6 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
 
         return columns;
     }
-
-
-
 
     private void markNumber(int columnIndex, int rowIndex, TextView numberView) {
         if (numberView.getText().toString().isEmpty()) {
@@ -392,4 +307,10 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
             Log.e("Partida", "Error al inicializar TTS.");
         }
     }
+
+    private void irMenu() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
+    }
+
 }

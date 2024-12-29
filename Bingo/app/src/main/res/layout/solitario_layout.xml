@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp">
-
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <GridLayout
         android:id="@+id/bingoGrid"
@@ -15,16 +12,15 @@
         android:columnCount="8"
         android:padding="16dp"
         android:rowCount="8"
-        app:layout_constraintBottom_toTopOf="@+id/linea_button"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.55"
-        tools:ignore="MissingConstraints"></GridLayout>
+        app:layout_constraintVertical_bias="0.462"></GridLayout>
 
     <Button
-        android:id="@+id/linea_button"
+        android:id="@+id/linea_solitario_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="#070101"
@@ -40,7 +36,7 @@
         app:layout_constraintVertical_bias="0.86" />
 
     <Button
-        android:id="@+id/bingo_button"
+        android:id="@+id/bingo_solitario_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="#070101"
@@ -56,7 +52,7 @@
         app:layout_constraintVertical_bias="0.86" />
 
     <Button
-        android:id="@+id/volver_multijugador_button"
+        android:id="@+id/volver_solitario_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:backgroundTint="#070101"
@@ -72,7 +68,7 @@
         app:layout_constraintVertical_bias="1.0" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/alfa_slab_one"
@@ -86,7 +82,7 @@
         app:layout_constraintVertical_bias="0.031" />
 
     <TextView
-        android:id="@+id/numeros_textView"
+        android:id="@+id/numeros_solitario_textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/alfa_slab_one"
@@ -96,10 +92,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView4"
-        app:layout_constraintVertical_bias="0.258" />
-
-    <!-- Los números se generarán dinámicamente en el código Java -->
-
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:layout_constraintVertical_bias="0.168" />
 </androidx.constraintlayout.widget.ConstraintLayout>
-

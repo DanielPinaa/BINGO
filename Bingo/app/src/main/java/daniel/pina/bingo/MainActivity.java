@@ -22,6 +22,19 @@ public class MainActivity extends AppCompatActivity {
                 irPlay();
             }
         });
+
+        Button jugarSoloButton = findViewById(R.id.jugar_solitario_button);
+        jugarSoloButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                irSolitario();
+            }
+        });
+    }
+
+    private void irSolitario() {
+        startActivity(new Intent(this, Solitario.class));
+        finish();
     }
 
     private void irPlay() {

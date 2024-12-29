@@ -48,6 +48,10 @@
             android:name=".Fin"
             android:exported="false" />
 
+        <activity
+            android:name=".Solitario"
+            android:exported="false" />
+
         <!-- Declarar fuentes preinstaladas si son necesarias -->
         <meta-data
             android:name="preloaded_fonts"
