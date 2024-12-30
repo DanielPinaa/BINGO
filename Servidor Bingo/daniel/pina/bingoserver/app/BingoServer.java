@@ -157,12 +157,12 @@ public class BingoServer {
         
         new Thread(() -> {
             try {
-                Thread.sleep(2000);
+                Thread.sleep(5000);
                 for (int numero : numerosBingo) {
                     try {
                         BingoServer.broadcast("NUMERO," + numero);
-        
-                        Thread.sleep(7500);
+                        System.out.println("NÚMERO: "+numero);
+                        Thread.sleep(6000);
                     } catch (InterruptedException e) {
                         break;
                     }

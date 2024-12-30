@@ -21,11 +21,14 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import android.speech.tts.TextToSpeech;
 import java.util.Locale;
+import java.util.Random;
+import java.util.Set;
 
 public class Partida extends AppCompatActivity implements TextToSpeech.OnInitListener{
 
@@ -45,6 +48,11 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
     private String NOMBRE;
 
     private MediaPlayer mediaPlayer;
+
+    private Map<Integer,Boolean>linea1 = new HashMap<>();
+    private Map<Integer,Boolean>linea2 = new HashMap<>();
+    private Map<Integer,Boolean>linea3 = new HashMap<>();
+    private Map<Integer,Boolean>linea4 = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,29 +92,42 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
 
         List<List<Integer>> orderedNumbers = generateBingoNumbers();
         listedNumbers = new HashMap<>();
-        for (int col = 0; col < 8; col++) {
-            List<Integer> currentColumn = orderedNumbers.get(col);
-            for (int row = 0; row < 8; row++) {
+        List<List<Integer>> transposedNumbers = new ArrayList<>();
+        for (int columna = 0; columna < 8; columna++) {
+            List<Integer> currentColumn = new ArrayList<>();
+            for (int fila = 0; fila < 4; fila++) {
+                if (columna < orderedNumbers.get(fila).size()) {
+                    currentColumn.add(orderedNumbers.get(fila).get(columna));
+                } else {
+                    currentColumn.add(null);
+                }
+            }
+            transposedNumbers.add(currentColumn);
+        }
+
+        for (int columna = 0; columna < 8; columna++) {
+            List<Integer> currentColumn = transposedNumbers.get(columna);
+            for (int fila = 0; fila < 4; fila++) {
                 TextView numberView = new TextView(this);
                 numberView.setTextSize(32f);
                 numberView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
                 numberView.setPadding(16, 16, 16, 16);
                 numberView.setGravity(Gravity.CENTER);
 
-                if (row < currentColumn.size() && currentColumn.get(row) != null) {
-                    int number = currentColumn.get(row);
+                if (currentColumn.get(fila) != null) {
+                    int number = currentColumn.get(fila);
                     numberView.setText(String.valueOf(number));
 
-                    final int columnIndex = col;
-                    final int rowIndex = row;
+                    final int columnIndex = columna;
+                    final int rowIndex = fila;
                     numberView.setOnClickListener(v -> markNumber(columnIndex, rowIndex, numberView));
                 } else {
                     numberView.setText("");
                 }
 
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                params.rowSpec = GridLayout.spec(row);
-                params.columnSpec = GridLayout.spec(col);
+                params.rowSpec = GridLayout.spec(fila);
+                params.columnSpec = GridLayout.spec(columna);
                 numberView.setLayoutParams(params);
 
                 bingoGrid.addView(numberView);
@@ -160,39 +181,53 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
             return;
         }
 
-        for (int row = 0; row < 8; row++) {
-            boolean lineaCompleta = true;
+        boolean lineaCompleta = true;
 
-            for (int col = 0; col < 8; col++) {
-                int index = (col * 8) + row;
-                TextView cell = (TextView) bingoGrid.getChildAt(index);
-
-                if (cell.getText().toString().isEmpty()) {
-                    continue;
-                }
-
-                int number = Integer.parseInt(cell.getText().toString());
-
-                if (!markedNumbers[number - 1]) {
+        for(Map.Entry<Integer,Boolean> entry : linea1.entrySet()){
+            if(!entry.getValue()){
+                lineaCompleta = false;
+                break;
+            }
+        }
+        if(!lineaCompleta) {
+            lineaCompleta = true;
+            for (Map.Entry<Integer, Boolean> entry : linea2.entrySet()) {
+                if (!entry.getValue()) {
                     lineaCompleta = false;
                     break;
                 }
-
             }
-
-
-
-            if (lineaCompleta) {
-                lineaCantada = true;
-                Toast.makeText(this, "¡Línea completada!", Toast.LENGTH_SHORT).show();
-
-                new Thread(() -> {
-                    if (out != null) {
-                        out.println("LINEA," + NOMBRE);
+            if(!lineaCompleta) {
+                lineaCompleta = true;
+                for (Map.Entry<Integer, Boolean> entry : linea3.entrySet()) {
+                    if (!entry.getValue()) {
+                        lineaCompleta = false;
+                        break;
                     }
-                }).start();
-                return;
+                }
+                if(!lineaCompleta) {
+                    lineaCompleta = true;
+                    for (Map.Entry<Integer, Boolean> entry : linea4.entrySet()) {
+                        if (!entry.getValue()) {
+                            lineaCompleta = false;
+                            break;
+                        }
+                    }
+                }
             }
+        }
+
+
+        if (lineaCompleta) {
+            lineaCantada = true;
+            Toast.makeText(this, "¡Línea completada!", Toast.LENGTH_SHORT).show();
+
+            new Thread(() -> {
+                if (out != null) {
+                    out.println("LINEA," + NOMBRE);
+                }
+            }).start();
+            return;
         }
 
         Toast.makeText(this, "Aún no has completado ninguna línea.", Toast.LENGTH_SHORT).show();
@@ -336,23 +371,95 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
 
 
     private List<List<Integer>> generateBingoNumbers() {
-        List<List<Integer>> columns = new ArrayList<>();
+        List<List<Integer>> matrix = new ArrayList<>();
 
-        for (int i = 0; i < 8; i++) {
-            List<Integer> column = new ArrayList<>();
-            for (int j = i * 10 + 1; j <= i * 10 + 10; j++) {
-                column.add(j);
+        Random random = new Random();
+
+        Map<Integer,Boolean> numeros = new HashMap<>();
+
+
+        for(int fila = 0; fila<4; fila++) {
+            List<Integer> filaActual = new ArrayList<>();
+
+            for(int col = 0; col<8; col++){
+
+
+                int min = col * 10 + 1;
+                int max = (col + 1) * 10;
+                int numero =0;
+                do {
+                    numero = min + random.nextInt(max - min + 1);
+                }while(numeros.containsKey(numero));
+                numeros.put(numero,true);
+                filaActual.add(col,numero);
+                switch (fila){
+                    case 0:
+                        linea1.put(numero,false);
+                        break;
+                    case 1:
+                        linea2.put(numero,false);
+                        break;
+                    case 2:
+                        linea3.put(numero,false);
+                        break;
+                    case 3:
+                        linea4.put(numero,false);
+                }
             }
-            Collections.shuffle(column);
-            List<Integer> selected = column.subList(0, 4);
-            while (selected.size() < 8) {
-                selected.add(null);
-            }
-            Collections.shuffle(selected);
-            columns.add(selected);
+            matrix.add(fila,filaActual);
         }
 
-        return columns;
+
+        List<int[]>nulls = obtenerPosNull();
+        for(int[]pos : nulls){
+            int row = pos[0];
+            int col = pos[1];
+            switch (row){
+                case 0:
+                    linea1.remove(matrix.get(row).get(col));
+                    break;
+                case 1:
+                    linea2.remove(matrix.get(row).get(col));
+                    break;
+                case 2:
+                    linea3.remove(matrix.get(row).get(col));
+                    break;
+                case 3:
+                    linea4.remove(matrix.get(row).get(col));
+            }
+            matrix.get(row).set(col,null);
+        };
+
+        return matrix;
+
+    }
+
+    public List<int[]> obtenerPosNull(){
+        int rows = 4;
+        int cols = 8;
+        int[][] matrix = new int[rows][cols];
+
+        int[] columnCount = new int[cols];
+
+        List<int[]> indices = new ArrayList<>();
+
+        Random random = new Random();
+
+        for (int row = 0; row < rows; row++) {
+            Set<Integer> selectedColumns = new HashSet<>();
+
+            while (selectedColumns.size() < 3) {
+                int col = random.nextInt(cols);
+                if (selectedColumns.contains(col)) continue;
+
+                if (columnCount[col] < 2) {
+                    selectedColumns.add(col);
+                    columnCount[col]++;
+                    indices.add(new int[]{row, col});
+                }
+            }
+        }
+        return indices;
     }
 
 
@@ -374,6 +481,23 @@ public class Partida extends AppCompatActivity implements TextToSpeech.OnInitLis
                 Toast.makeText(this, "Este número ya ha sido marcado.", Toast.LENGTH_SHORT).show();
             } else {
                 markedNumbers[number - 1] = true;
+                boolean marcado = false;
+                if(linea1.containsKey(number)){
+                    marcado = true;
+                    linea1.put(number,true);
+                }
+                if(!marcado && linea2.containsKey(number)){
+                    marcado = true;
+                    linea2.put(number,true);
+                }
+                if(!marcado && linea3.containsKey(number)){
+                    marcado = true;
+                    linea3.put(number,true);
+                }
+                if(!marcado && linea4.containsKey(number)){
+                    marcado = true;
+                    linea4.put(number,true);
+                }
                 numberView.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
                 numberView.setTextColor(getResources().getColor(android.R.color.white));
             }
