@@ -1,7 +1,10 @@
 package daniel.pina.bingo;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -15,8 +18,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Locale;
 
-public class Multijugador extends AppCompatActivity {
+public class Multijugador extends AppCompatActivity implements TextToSpeech.OnInitListener{
 
     private static String SERVER_IP;
     private static String NOMBRE;
@@ -27,10 +31,15 @@ public class Multijugador extends AppCompatActivity {
 
     private Button conectarButton;
 
+    private TextToSpeech textToSpeech;
+
+    private ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.multijugador_layout);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         Button volverButton = findViewById(R.id.volver_button_multi);
         volverButton.setOnClickListener(new View.OnClickListener() {
@@ -48,6 +57,11 @@ public class Multijugador extends AppCompatActivity {
             }
         });
 
+        textToSpeech = new TextToSpeech(this, this);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Esperando que la partida comience...");
+        progressDialog.setCancelable(false);
 
     }
 
@@ -89,20 +103,18 @@ public class Multijugador extends AppCompatActivity {
                         Log.d("Multijugador", "Mensaje recibido del servidor: " + message);
 
                         if(message.equals(NOMBRE + " se ha conectado a la partida.")){
-                            runOnUiThread(() -> {
 
+                            runOnUiThread(() -> {
                                 Toast.makeText(Multijugador.this, "Te has unido a la partida correctamente", Toast.LENGTH_SHORT).show();
                                 conectarButton.setEnabled(false);
+                                progressDialog.show();
                             });
                         }
                         else{
-                            String finalMessage = message;
-                            runOnUiThread(() -> {
-                                Toast.makeText(Multijugador.this, finalMessage, Toast.LENGTH_SHORT).show();
-                                conectarButton.setEnabled(false);
-                            });
+                            speakPlayer(message);
                         }
                         if(message.equals("PARTIDA COMENZADA")){
+                            runOnUiThread(() -> progressDialog.dismiss());
                             irPartida(socket, out, in);
                         }
                     }
@@ -144,8 +156,27 @@ public class Multijugador extends AppCompatActivity {
         }
     }
 
+    private void speakPlayer(String player) {
+        if (textToSpeech != null) {
+            textToSpeech.speak(player, TextToSpeech.QUEUE_FLUSH, null, null);
+        }
+    }
+
     private void irMenu() {
         startActivity(new Intent(this, MainActivity.class));
         finish();
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+            int result = textToSpeech.setLanguage(new Locale("es", "ES"));
+
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("Partida", "Idioma no soportado para TTS.");
+            }
+        } else {
+            Log.e("Partida", "Error al inicializar TTS.");
+        }
     }
 }

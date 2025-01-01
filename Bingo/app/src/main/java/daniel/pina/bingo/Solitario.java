@@ -3,6 +3,7 @@ package daniel.pina.bingo;
 import static daniel.pina.bingo.R.*;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.view.View;
@@ -54,6 +55,7 @@ public class Solitario extends AppCompatActivity implements TextToSpeech.OnInitL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(layout.solitario_layout);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         textToSpeech = new TextToSpeech(this, this);
 
@@ -357,10 +359,6 @@ public class Solitario extends AppCompatActivity implements TextToSpeech.OnInitL
             else
                 textToSpeech.speak(number, TextToSpeech.QUEUE_FLUSH, null, null);
         }
-    }
-
-    private void speakLinea(String nombre) {
-        textToSpeech.speak(nombre + " ha cantado línea.", TextToSpeech.QUEUE_FLUSH, null, null);
     }
 
     private void playSound(String sound) {
